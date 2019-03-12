@@ -61,9 +61,8 @@ function in($vals, $obj) {
     } else {
         $late_flg = 1;
     }
-    
-    $sql = 'SELECT MAX(ATTENDANCE_ID) + 1 ATTENDANCE_ID FROM T_ATTENDANCE';
-    $att_id = $obj->getAttendanceId($sql)[0]['ATTENDANCE_ID'];
+    // 最大値+1のAttendanceIDを取得
+    $att_id = selectMaxAttendanceID($obj);
     // 同日に出勤レコードがあるか確認する
     $attendanc = selectAttendanceId($obj, $date, $card_id);
     // $attendancが取得できたらPAIR_ATTENDANCEをNULLに更新する
@@ -92,7 +91,18 @@ function out($vals, $obj) {
     // 近日作成予定
 }
 
+// 最大値+1のAttendanceIDを取得
+function selectMaxAttendanceID($obj) {
+    $sql = 'SELECT MAX(ATTENDANCE_ID) + 1 ATTENDANCE_ID FROM T_ATTENDANCE';
+    $result = $obj->getAttendanceId($sql)[0]['ATTENDANCE_ID'];
+    if ($result) {
+        return $result[0]['ATTENDANCE_ID'];
+    } else {
+        return 1;
+    }
+}
 
+// 同日にデータがあるか確認
 function  selectAttendanceId($obj, $date, $card_id) {
     $sql = 'SELECT ATTENDANCE_ID FROM T_ATTENDANCE '
         . 'WHERE CONVERT(NVARCHAR, TIME, 112) = ? AND CARD_ID = ?';
@@ -103,5 +113,4 @@ function  selectAttendanceId($obj, $date, $card_id) {
     } else {
         return null;
     }
-    
 }
