@@ -140,7 +140,7 @@ class connect
         try {
             $pdo = $this->pdo();
             $stmt = $pdo->prepare($sql);
-            $stmt->execute(array($param[0], $param[1]));
+            $stmt->execute(array($param[0], $param[1], $param[2]));
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         } catch (PDOException $e) {
@@ -148,19 +148,19 @@ class connect
         }
     }
 
-//    // LATE_FLGを取得
-//    function selectLateFlg($sql, $param) {
-//        try {
-//            $pdo = $this->pdo();
-//            $stmt = $pdo->prepare($sql);
-//            $stmt->execute(array($param));
-//            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-//            return $result;
-//        } catch (PDOException $e) {
-//            print('Error:'.$e->getMessage());
-//        }
-//    }
-
+    // PAIR_ATTENDANCE_IDを取得
+    function selectPairAttendanceId ($sql, $param) {
+        try {
+            $pdo = $this->pdo();
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array($param[0], $param[1]));
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $e) {
+            print('Error:'.$e->getMessage());
+        }
+    }
+    
     // 勤怠管理更新
     function updateAttendanceTable($sql, $param) {
         try {
@@ -174,19 +174,7 @@ class connect
         return $mes;
     }
 
-//    // 
-//    function deleteAttendanceTable($sql, $param) {
-//        try {
-//            $pdo = $this->pdo();
-//            $stmt = $pdo->prepare($sql);
-//            $stmt->execute(array($param));
-//            $mes = '更新が完了しました。';
-//            return $mes;
-//        } catch (PDOException $e) {
-//            $mes = 'データベースエラー';
-//        }
-//    }
-
+    // PairAttendanceIDを更新
     function updatePairAttendance($sql, $param) {
         try {
             $pdo = $this->pdo();
@@ -212,7 +200,7 @@ class connect
         return $mes;
     }
 
-    // 勤怠管理登録(CSV出勤登録)
+    // 勤怠管理登録
     function insertAttendanceTable2($sql, $param) {
         try {
             $pdo = $this->pdo();
