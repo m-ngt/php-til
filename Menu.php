@@ -14,7 +14,6 @@ require_once './class/ImportDateClass.php';
   <form name="menu" action="" method="POST">
     <a href="emp.php" >社員マスタ</a><br><br>
     <a href="card.php" >カードマスタ</a><br><br>
-    <a href="holyday.php" >休日マスタ</a><br><br>
     <a href="attendance.php" >勤怠管理画面</a><br><br>
     <button type="submit" name="import" value="import">勤怠取込</button>
   </form>

@@ -64,31 +64,58 @@ function in($vals, $obj) {
     // 最大値+1のAttendanceIDを取得
     $att_id = selectMaxAttendanceID($obj);
     // 同日に出勤レコードがあるか確認する
-    $attendanc = selectAttendanceId($obj, $date, $card_id);
+    $attendanc = selectAttendanceId($obj, $date, $card_id, 0);
     // $attendancが取得できたらPAIR_ATTENDANCEをNULLに更新する
     if ($attendanc !== null) {
         $warn = 1;
-        $sql2 = 'UPDATE T_ATTENDANCE SET PAIR_ATTENDANCE = NULL '
+        $sql1 = 'UPDATE T_ATTENDANCE SET PAIR_ATTENDANCE = NULL '
                 . 'WHERE ATTENDANCE_ID = ?';
-        $success = $obj->updatePairAttendance($sql2, $attendanc);
+        $success = $obj->updatePairAttendance($sql1, $attendanc);
     } else {
         $warn = 0;
     }
     // UPDATEなし or UPDATEが成功したら実施する
     if($success) {
-        $sql3 = 'INSERT INTO T_ATTENDANCE(EMP_NO, ATTENDANCE_ID, CARD_ID, ATTENDANCE_TYPE, TIME, '
+        $sql2 = 'INSERT INTO T_ATTENDANCE(EMP_NO, ATTENDANCE_ID, CARD_ID, ATTENDANCE_TYPE, TIME, '
                 .'LATE_FLG, REVOKE_FLAG, WARN_FLG, PAIR_ATTENDANCE, REG_DATE, REG_SCREEN, UPDATE_DATE) '
                 . 'SELECT EMP_NO, ?, ?, 0, ?, ?, 0, ?, ?, GETDATE(), ?, GETDATE() '
                 . 'FROM M_CARD WHERE CARD_ID = ?';
-        $sql3_param = [$att_id, $card_id, $datetime, $late_flg, $warn, $att_id, 'SYSTEM', $card_id];
-        $success = $obj->insertAttendanceTable2($sql3, $sql3_param);
+        $sql2_param = [$att_id, $card_id, $datetime, $late_flg, $warn, $att_id, 'SYSTEM', $card_id];
+        $success = $obj->insertAttendanceTable2($sql2, $sql2_param);
     }
     return $success;
 }
 
 // 退勤情報登録
 function out($vals, $obj) {
-    // 近日作成予定
+    $success = true;
+    $card_id = $vals[1];
+    $datetime = $vals[2];
+    $date = str_replace('-', '', substr($datetime, 0, 10));
+    $late_flg = 0;
+    // 最大値+1のAttendanceIDを取得
+    $att_id = selectMaxAttendanceID($obj);
+    // 同日に出勤レコードがあるか確認する
+    $attendanc = selectAttendanceId($obj, $date, $card_id, 1);
+    // $attendancが取得できたらPAIR_ATTENDANCEをNULLに更新する
+    if ($attendanc !== null) {
+        $warn = 1;
+        $sql1 = 'UPDATE T_ATTENDANCE SET PAIR_ATTENDANCE = NULL '
+                . 'WHERE ATTENDANCE_ID = ?';
+        $success = $obj->updatePairAttendance($sql1, $attendanc);
+    } else {
+        $warn = 0;
+    }
+    // UPDATEなし or UPDATEが成功したら実施する
+    if($success) {
+        $sql2 = 'INSERT INTO T_ATTENDANCE(EMP_NO, ATTENDANCE_ID, CARD_ID, ATTENDANCE_TYPE, TIME, '
+                .'LATE_FLG, REVOKE_FLAG, WARN_FLG, PAIR_ATTENDANCE, REG_DATE, REG_SCREEN, UPDATE_DATE) '
+                . 'SELECT EMP_NO, ?, ?, 1, ?, ?, 0, ?, ?, GETDATE(), ?, GETDATE() '
+                . 'FROM M_CARD WHERE CARD_ID = ?';
+        $sql2_param = [$att_id, $card_id, $datetime, $late_flg, $warn, $att_id, 'SYSTEM', $card_id];
+        $success = $obj->insertAttendanceTable2($sql2, $sql2_param);
+    }
+    return $success;
 }
 
 // 最大値+1のAttendanceIDを取得
@@ -103,10 +130,10 @@ function selectMaxAttendanceID($obj) {
 }
 
 // 同日にデータがあるか確認
-function  selectAttendanceId($obj, $date, $card_id) {
+function  selectAttendanceId($obj, $date, $card_id, $type) {
     $sql = 'SELECT ATTENDANCE_ID FROM T_ATTENDANCE '
-        . 'WHERE CONVERT(NVARCHAR, TIME, 112) = ? AND CARD_ID = ?';
-    $param = [$date, $card_id];
+        . 'WHERE CONVERT(NVARCHAR, TIME, 112) = ? AND CARD_ID = ? AND ATTENDANCE_TYPE = ?';
+    $param = [$date, $card_id, $type];
     $result = $obj->selectAttendanceId($sql, $param);
     if ($result) {
         return $result[0]['ATTENDANCE_ID'];
